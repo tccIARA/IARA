@@ -1,0 +1,887 @@
+{
+  "name": "IARA",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "Uazapi",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -4528,
+        416
+      ],
+      "id": "2a549c67-0f6f-42f3-8289-f12914f9b8dc",
+      "name": "Webhook",
+      "webhookId": "328f80fa-4852-4b7a-aa09-e7618842b116"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0979a80e-0bba-4210-baa1-374e7cf7b4e0",
+              "name": "user.nome",
+              "value": "={{ $('Webhook').item.json.body.message.senderName }}",
+              "type": "string"
+            },
+            {
+              "id": "b157f7b8-de43-4942-bbcc-0a8430711571",
+              "name": "user.contato",
+              "value": "={{ $('Webhook').item.json.body.message.sender_pn.split('@')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "8b2d380d-03cd-4cd0-a1fe-947418713802",
+              "name": "user.mensagem",
+              "value": "={{ $('Webhook').item.json.body.message.text }}",
+              "type": "string"
+            },
+            {
+              "id": "c52cee7f-f024-4e5d-9112-9af37799e2f4",
+              "name": "msg.group",
+              "value": "={{ $('Webhook').item.json.body.message.isGroup }}",
+              "type": "boolean"
+            },
+            {
+              "id": "badc2cdc-3062-4c83-9e2a-519f6a9499cd",
+              "name": "msg.origem",
+              "value": "={{ $('Webhook').item.json.body.message.fromMe ? 'outgoing' : 'incoming'}}",
+              "type": "string"
+            },
+            {
+              "id": "d12b6b10-4910-42a3-b420-a7729566f3f3",
+              "name": "msg.id",
+              "value": "={{ $('Webhook').item.json.body.message.messageid }}",
+              "type": "string"
+            },
+            {
+              "id": "463e57d7-0a85-46a1-86fa-5bee4f0a71e1",
+              "name": "msg.type",
+              "value": "={{ $json.body.message.messageType }}",
+              "type": "string"
+            },
+            {
+              "id": "d7bbf9ce-edc7-49ac-ac5d-7697c5b59138",
+              "name": "api.token",
+              "value": "={{ $('Webhook').item.json.body.token }}",
+              "type": "string"
+            },
+            {
+              "id": "4fa3296f-fc52-40c2-8cb0-4f6808191013",
+              "name": "msg.timeout",
+              "value": "10",
+              "type": "string"
+            },
+            {
+              "id": "bd490d3d-bb4b-4ddc-9445-6884500590c3",
+              "name": "api.baseURL",
+              "value": "={{ $env.UAZAPI_BASE_URL || 'https://iaraa.uazapi.com' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -4320,
+        416
+      ],
+      "id": "f20a7cf5-170a-4283-893a-12989184a06f",
+      "name": "NORMALIZACAO"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        -3584,
+        720
+      ],
+      "id": "99d741e2-f8a6-45b9-a9d5-898dc03bb942",
+      "name": "NADA"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "582cda9c-abc9-40db-aaa7-9dfb9f69c3a6",
+              "leftValue": "={{ $('NORMALIZACAO').item.json.msg.group }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -4096,
+        416
+      ],
+      "id": "fd3f3e95-0b66-4863-9fe7-f7af99418c68",
+      "name": "GRUPO?"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('SET_VARIAVEIS').item.json.user.message }}",
+        "options": {
+          "systemMessage": "# IDENTIDADE\nVocê é o Assistente Virtual do Centro de Processamento de Dados (CPD) da Escola Técnica Estadual Monteiro Lobato. \nSeu nome é IARA. Você atende alunos, responsáveis e professores via chat.\n\n# OBJETIVO\nAjudar os usuários de forma rápida, clara e educada com:\n1. Dúvidas frequentes (FAQ) sobre a escola e o CPD.\n2. Consulta de horário de aulas, considerando o curso\n3. Solicitação de impressões (documentos, boletins, comprovantes).\n4. Processo de matrícula (nova matrícula ou rematrícula).\n5. Agendamento de reuniões (com coordenação, direção, professores ou CPD).\n\n# TOM E ESTILO\n- Educado, objetivo e acolhedor.\n- Use linguagem simples, evite jargões técnicos de TI.\n- Respostas curtas quando possível; detalhe apenas quando o usuário pedir.\n- Nunca invente informações. Se não souber, diga que vai verificar ou direcione para um humano.\n\n# REGRAS GERAIS\n1. Você NÃO precisa verificar o nome do aluno.\n2. Nunca revele dados de um aluno para outro usuário sem confirmar a identidade (nome completo + nº de matrícula ou CPF do responsável).\n3. Para ações que alteram dados (matrícula, agendamento, impressão), sempre confirme com o usuário antes de executar (\"Você confirma o agendamento da reunião X no dia Y às Z?\").\n4. Se a solicitação estiver fora do seu escopo (ex: problemas financeiros, questões pedagógicas complexas, suporte técnico avançado), explique isso e direcione para o setor correto ou para um atendente humano.\n5. Nunca execute uma ferramenta sem ter todos os parâmetros obrigatórios preenchidos. Pergunte o que faltar.\n6. Em caso de erro de uma ferramenta, informe o usuário de forma simples e ofereça alternativa (tentar de novo, falar com humano).\n7. Sempre finalize interações de solicitação (matrícula, impressão, reunião) com um resumo do que foi feito.\n\n# FERRAMENTAS DISPONÍVEIS\nVocê tem acesso às seguintes ferramentas (tools). Use-as sempre que a solicitação do usuário exigir dados reais ou uma ação no sistema — nunca \"simule\" uma resposta dessas áreas de memória.\n\n- consultar_faq: busca respostas em uma base de perguntas frequentes.\n- consultar_horario: retorna o horário de aula de um curso específico solicitado pelo remetente.\n- solicitar_impressao: registra um pedido de impressão de documento.\n- iniciar_matricula: inicia ou continua um processo de matrícula/rematrícula.\n- agendar_reuniao: verifica disponibilidade e agenda uma reunião.\n- encaminhar_atendimento_humano: transfere a conversa para um atendente do CPD quando necessário.\n\n# FLUXO DE DECISÃO\n1. Identifique a intenção do usuário.\n2. Se for uma dúvida geral → use consultar_faq.\n3. Se for sobre horário de aula → use consultar_horario.\n4. Se for impressão → confirme documento e retirada → use solicitar_impressao.\n5. Se for matrícula → siga o fluxo de iniciar_matricula, coletando dados por etapas.\n6. Se for reunião → confirme com quem, motivo e preferência de data/horário → use agendar_reuniao.\n7. Se não se encaixar em nenhuma tool ou o usuário pedir explicitamente → use encaminhar_atendimento_humano.\n\n# LIMITES\n- Você não tem acesso a notas, boletins ou informações financeiras (a menos que uma tool específica seja adicionada para isso).\n- Você não pode alterar dados cadastrais além do que as tools permitem.\n- Nunca peça senhas, dados de cartão ou informações bancárias."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -2176,
+        384
+      ],
+      "id": "74dd4d8d-4606-4bf5-be88-731e052afc68",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "content": "## nada",
+        "height": 176,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -3648,
+        672
+      ],
+      "typeVersion": 1,
+      "id": "23a78c88-bd47-4f8b-814d-14862ef11ca7",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "responsesApiEnabled": "",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -2464,
+        848
+      ],
+      "id": "32e1c1db-68a2-44d0-8406-8a334fd0828d",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "oguKUYHI8lnmzAjP",
+          "name": "IARA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('NORMALIZACAO').item.json.api.baseURL }}/send/text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "={{ $('NORMALIZACAO').item.json.api.token }}"
+            },
+            {
+              "name": "convert",
+              "value": "true"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{$('SET_VARIAVEIS').item.json.user.number}}"
+            },
+            {
+              "name": "text",
+              "value": "={{ $json.output }}"
+            }
+          ]
+        },
+        "options": {
+          "redirect": {
+            "redirect": {
+              "followRedirects": false
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -1728,
+        384
+      ],
+      "id": "87d10015-a1ee-479a-a423-1eb10c513707",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $('NORMALIZACAO').item.json.msg.type }}",
+                    "rightValue": "AudioMessage",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "a9007c08-1459-44c4-bd9e-8d3ae440bcda"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "audio"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "82bcbb5f-b48d-4f08-9ce0-0a99c228808f",
+                    "leftValue": "={{ $('NORMALIZACAO').item.json.msg.type }}",
+                    "rightValue": "ImageMessage",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "image"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "203d7414-7ff9-4186-a77e-5679d04137bc",
+                    "leftValue": "={{ $('NORMALIZACAO').item.json.msg.type }}",
+                    "rightValue": "DocumentMessage",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "document"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "4459d36b-2479-404f-b91c-426de6061c89",
+                    "leftValue": "={{ $('NORMALIZACAO').item.json.msg.type }}",
+                    "rightValue": "Conversation",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "text"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -3600,
+        336
+      ],
+      "id": "7a691c12-3553-4ffd-8d5c-ea0a9646dc3c",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $('NORMALIZACAO').item.json.api.baseURL }}/message/download ",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "token",
+              "value": "={{ $('NORMALIZACAO').item.json.api.token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "=json",
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "jsonBody": "={\n  \"id\": \"{{ $('NORMALIZACAO').item.json.msg.id }}\",\n  \"transcribe\": true,\n  \"openai_apikey\": \"{{ $env.OPENAI_API_KEY }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -3232,
+        160
+      ],
+      "id": "896379ab-452a-4397-9933-c23d45a018c4",
+      "name": "URLaudio"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e03198ba-7bfb-47ee-ad67-c36bbff7d5a7",
+              "leftValue": "={{ $('NORMALIZACAO').item.json.msg.origem }}",
+              "rightValue": "incoming",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -3840,
+        400
+      ],
+      "id": "5bf2d901-c80d-4d28-8434-213774712408",
+      "name": "INCOMING"
+    },
+    {
+      "parameters": {
+        "content": "## AGENTE",
+        "height": 192,
+        "width": 320,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2224,
+        320
+      ],
+      "typeVersion": 1,
+      "id": "94af153a-87b9-442f-84e4-05b09f26e2e7",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "SUB-AGENTES",
+        "height": 480,
+        "width": 656,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -2160,
+        576
+      ],
+      "typeVersion": 1,
+      "id": "36755cc4-8fbd-4a07-b358-7bc1498cb22b",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Regra de resposta para horários:\nQuando o usuário perguntar pelos horários de um curso:\n\n1. Mapeie a entrada ou abreviação do usuário para o NOME EXATO do curso cadastrado no banco de dados:\n   - \"elo\", \"eletronica\", \"eletrônica\" -> Eletrônica\n   - \"eletro\", \"eletrotecnica\", \"eletrotécnica\" -> Eletrotécnica\n   - \"mec\", \"mecanica\", \"mecânica\" -> Mecânica\n   - \"design\", \"design de moveis\", \"design de móveis\" -> Design\n   - \"moveis\", \"móveis\" -> Móveis\n   - \"info\", \"informatica\", \"informática\" -> Informática\n   - \"quimica\", \"química\" -> Química\n   - \"mab\", \"meio ambiente\" -> Meio Ambiente\n\n2. Use a ferramenta do Supabase para buscar na tabela 'Horarios' onde a coluna 'curso' seja IGUAL ao nome exato mapeado acima.\n\n3. Extraia o link contido na coluna 'horario'.\n\n4. Responda APENAS com o URL do PDF (ex: https://.../arquivo.pdf), sem saudações, pontuações ou texto adicional.",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        -2112,
+        640
+      ],
+      "id": "d8047bae-940d-46e6-ab17-479ce0bbed4b",
+      "name": "consultar_horario"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Regra de resposta para as FAQ's:\nQuando o usuário fizer uma dúvida freqeunte:\n\nUse a ferramenta do Supabase para buscar a pergunta informado na tabela FAQ.\n\nExtraia a resposta contido na coluna resposta.\n\nResponda APENAS as regras escolar, sem saudações, introduções ou texto adicional.",
+        "text": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Prompt__User_Message_', ``, 'string') }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agentTool",
+      "typeVersion": 3,
+      "position": [
+        -1840,
+        640
+      ],
+      "id": "a8bd7eae-c257-4f92-9e60-e80520cc0fb2",
+      "name": "consultar_faq"
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Esta ferramenta consulta a tabela Horarios no Supabase. Passe o nome do curso para buscar a linha correspondente e retornar o link de PDF que está na coluna 'horario'.",
+        "operation": "getAll",
+        "tableId": "Horarios",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "curso",
+              "condition": "ilike",
+              "keyValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('conditions0_Field_Value', ``, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        -1968,
+        848
+      ],
+      "id": "52d2a7ec-37de-4a00-8852-323f40bf3ffb",
+      "name": "Get many rows in Supabase",
+      "credentials": {
+        "supabaseApi": {
+          "id": "qO9CfrD6M7NZJBZ4",
+          "name": "IARA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Esta ferramenta consulta a tabela FAQ no Supabase. Passe a pergunta para buscar a linha correspondente e retornar a resposta que está na coluna 'resposta'.",
+        "operation": "getAll",
+        "tableId": "FAQ",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "pergunta",
+              "condition": "ilike",
+              "keyValue": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('conditions0_Field_Value', ``, 'string') }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.supabaseTool",
+      "typeVersion": 1,
+      "position": [
+        -1696,
+        848
+      ],
+      "id": "272ed215-eb76-4c09-bc1e-2e8c8dd28db4",
+      "name": "Get many rows in Supabase1",
+      "credentials": {
+        "supabaseApi": {
+          "id": "qO9CfrD6M7NZJBZ4",
+          "name": "IARA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 5
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -2832,
+        336
+      ],
+      "id": "70aaf4e0-184f-4521-b17c-fd45d41e800c",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "acdf3fa9-d27c-48fa-9737-62895c07733f",
+              "name": "user.name",
+              "value": "={{ $('NORMALIZACAO').item.json.user.nome }}",
+              "type": "string"
+            },
+            {
+              "id": "e282674d-938d-4b58-acc7-ccd9e9ac60ec",
+              "name": "user.number",
+              "value": "={{ $('NORMALIZACAO').item.json.user.contato }}",
+              "type": "string"
+            },
+            {
+              "id": "63358eef-16e2-4d1f-b7d4-864ead4f2c60",
+              "name": "user.message",
+              "value": "={{ $('NORMALIZACAO').item.json.user.mensagem }} {{ $json.transcription || '' }}",
+              "type": "string"
+            },
+            {
+              "id": "73bc4ada-30b6-422d-ac33-549262c2e09b",
+              "name": "msg.id",
+              "value": "={{ $('NORMALIZACAO').item.json.msg.id }}",
+              "type": "string"
+            },
+            {
+              "id": "5ce7ad8f-e89d-42c0-a78e-feaa830391c2",
+              "name": "msg.timeout",
+              "value": "={{ $('NORMALIZACAO').item.json.msg.timeout }}",
+              "type": "string"
+            },
+            {
+              "id": "44fce3e5-f36f-4635-9ca5-b9a90080a1e0",
+              "name": "api.token",
+              "value": "={{ $('NORMALIZACAO').item.json.api.token }}",
+              "type": "string"
+            },
+            {
+              "id": "d6fd0fe4-457e-46f5-96c8-1e3639b93c06",
+              "name": "api.URL",
+              "value": "={{ $('NORMALIZACAO').item.json.api.baseURL }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -2608,
+        384
+      ],
+      "id": "e884d063-ce1d-4b87-8b19-9373604dc3d2",
+      "name": "SET_VARIAVEIS"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('NORMALIZACAO').item.json.user.contato }}",
+        "contextWindowLength": 15
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.4,
+      "position": [
+        -2288,
+        944
+      ],
+      "id": "1e48950e-2a5f-4f1a-b97d-57d162dbea3a",
+      "name": "Postgres Chat Memory",
+      "credentials": {
+        "postgres": {
+          "id": "zCPgoEIAexT6BRxa",
+          "name": "Postgres supabase"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "NORMALIZACAO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "NORMALIZACAO": {
+      "main": [
+        [
+          {
+            "node": "GRUPO?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GRUPO?": {
+      "main": [
+        [
+          {
+            "node": "INCOMING",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NADA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "consultar_horario",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "consultar_faq",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "URLaudio": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "URLaudio",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 3
+          }
+        ],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "INCOMING": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "NADA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_horario": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_faq": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows in Supabase": {
+      "ai_tool": [
+        [
+          {
+            "node": "consultar_horario",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many rows in Supabase1": {
+      "ai_tool": [
+        [
+          {
+            "node": "consultar_faq",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "SET_VARIAVEIS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SET_VARIAVEIS": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "consultar_horario",
+            "type": "ai_memory",
+            "index": 0
+          },
+          {
+            "node": "consultar_faq",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "04eedaa3-5980-4646-b21c-3e23c840c16a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "5de853f03bb90e8ccdce530d23dbe922e2fbbfb428a7bade56490e5313bd23d9"
+  },
+  "id": "wwsduzj1srKrfwaG",
+  "tags": []
+}
